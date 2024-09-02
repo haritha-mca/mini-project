@@ -1,12 +1,14 @@
 <?php
-define('DB_SERVER','localhost');
-define('DB_USER','root');
-define('DB_PASS' ,'');
-define('DB_NAME', 'hms');
-$con = mysqli_connect(DB_SERVER,DB_USER,DB_PASS,DB_NAME);
+$host = 'localhost';  // Your database host
+$user = 'root';        // Your database username
+$password = '';        // Your database password (if any)
+$dbname = 'medalert';  // Your database name
+
+// Create connection
+$con = mysqli_connect($host, $user, $password, $dbname);
+
 // Check connection
-if (mysqli_connect_errno())
-{
- echo "Failed to connect to MySQL: " . mysqli_connect_error();
+if (!$con) {
+    die("Connection failed: " . mysqli_connect_error());
 }
 ?>

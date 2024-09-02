@@ -92,6 +92,26 @@ if (isset($_POST['submit'])) {
             justify-content: flex-end;
             margin-top: 10px;
         }
+       
+        .copyright {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+        .btn-home {
+            background-color:#007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button-wrapper {
+            margin-top: 10px;
+        }
         .btn {
             background-color: #007bff;
             color: white;
@@ -99,12 +119,6 @@ if (isset($_POST['submit'])) {
             border: none;
             border-radius: 3px;
             cursor: pointer;
-        }
-        .copyright {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #999;
         }
     </style>
 </head>
@@ -129,8 +143,9 @@ if (isset($_POST['submit'])) {
                     <div class="form-group">
                         <input type="password" class="form-control password" name="password" placeholder="Password" required>
                     </div>
-                    <div class="form-actions">
+                    <div class="button-wrapper">
                         <button type="submit" class="btn" name="submit">Login</button>
+                        <a href="login.php" class="btn-home">Back to Home</a>
                     </div>
                 </fieldset>
             </form>

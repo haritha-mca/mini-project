@@ -138,7 +138,7 @@ $user_username = $_SESSION['user_username'];
             top: 30px; /* Space from the top */
             left: 50%;
             transform: translateX(-50%);
-            color: #3A1078;
+            color: white;
             font-size: 30px;
             z-index: 1; /* Ensure the message is above the image */
             font-family: 'Times New Roman', Times, serif;
@@ -162,7 +162,7 @@ $user_username = $_SESSION['user_username'];
             <div class="welcome-message">
                 Welcome, <?php echo htmlspecialchars($user_username); ?>!
             </div>
-            <img src="assets/images/patient.avif" alt="Dashboard Image" class="dashboard-image">
+            <img src="assets/images/patientnew.cms" alt="Dashboard Image" class="dashboard-image">
             <div class="button-container">
                 <a href="view_detail.php">View Details</a>
                 <a href="add_details.php">Add Details</a>

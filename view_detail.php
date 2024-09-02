@@ -11,10 +11,11 @@ if (!isset($_SESSION['user_id'])) {
 // Retrieve user ID from session
 $user_id = $_SESSION['user_id'];
 
-// Prepare and execute the query to fetch medical details
+// Prepare and execute the query to fetch medical details along with hospital name
 $sql = "
-    SELECT p.patient_name, p.patient_id_proof, p.details, p.bp, p.`blood sugar`, p.weight, p.allergies, p.previous_surgeries, p.bmi, p.height, p.heart_rate
+    SELECT p.details, p.bp, p.`blood sugar`, p.weight, p.allergies, p.previous_surgeries, p.bmi, p.height, p.heart_rate, p.bloodgroup, p.medications, p.immunizations, p.last_visited_date, p.test_results, p.hospitalizations, h.name AS hospital_name
     FROM patients p
+    LEFT JOIN hospitals h ON p.hospital_id = h.id
     WHERE p.user_id = ? 
     ORDER BY p.patient_name ASC
 ";
@@ -107,10 +108,14 @@ $stmt->close();
             font-family: 'Times New Roman', Times, serif;
         }
 
+        .medical-info {
+            margin-top: 20px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-bottom: 20px;
         }
 
         table, th, td {
@@ -125,6 +130,15 @@ $stmt->close();
         th {
             background-color: #5DEBD7;
             color: #3A1078;
+        }
+
+        .medical-info .label {
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .medical-info .value {
+            text-align: left;
         }
     </style>
 </head>
@@ -142,44 +156,82 @@ $stmt->close();
             <h1>Medalert Access System</h1>
         </header>
         <main>
-            <h2>Medical Details</h2>
             <?php if (empty($details)): ?>
                 <p>No medical details found.</p>
             <?php else: ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Patient Name</th>
-                            <th>ID Proof</th>
-                            <th>BP</th>
-                            <th>Blood Sugar</th>
-                            <th>Weight</th>
-                            <th>Allergies</th>
-                            <th>Previous Surgeries</th>
-                            <th>BMI</th>
-                            <th>Height</th>
-                            <th>Heart Rate</th>
-                            <th>Additional Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($details as $detail): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($detail['patient_name']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['patient_id_proof']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['bp']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['blood sugar']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['weight']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['allergies']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['previous_surgeries']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['bmi']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['height']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['heart_rate']); ?></td>
-                                <td><?php echo htmlspecialchars($detail['details']); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="medical-info">
+                    <h3>Medical Details</h3>
+                    <?php foreach ($details as $detail): ?>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td class="label">Hospital Name:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['hospital_name']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">BP:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['bp']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Blood Sugar:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['blood sugar']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Weight:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['weight']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Allergies:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['allergies']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Previous Surgeries:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['previous_surgeries']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">BMI:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['bmi']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Height:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['height']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Heart Rate:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['heart_rate']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Blood Group:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['bloodgroup']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Medications:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['medications']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Immunizations:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['immunizations']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Last Visited Date:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['last_visited_date']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Test Results:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['test_results']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Hospitalizations:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['hospitalizations']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Additional Details:</td>
+                                    <td class="value"><?php echo htmlspecialchars($detail['details']); ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </main>
     </div>

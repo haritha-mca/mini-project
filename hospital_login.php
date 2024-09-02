@@ -2,22 +2,28 @@
 session_start();
 include("config.php"); // Ensure this file has your database connection
 
+$error = ''; // Initialize error variable
+
 if (isset($_POST['submit'])) {
-    $uname = $_POST['username'];
+    $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Prepare and execute the query
-    $stmt = $con->prepare("SELECT * FROM admins WHERE username = ?");
-    $stmt->bind_param("s", $uname);
+    // Prepare and execute the query to prevent SQL injection
+    $stmt = $con->prepare("SELECT * FROM hospital WHERE username = ?");
+    $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
+    $hospital = $result->fetch_assoc();
 
-    if ($user) {
-        // Check the plain text password
-        if ($password === $user['password']) {
-            $_SESSION['admin'] = $user['id'];
-            header('Location: admin_dashboard.php');
+    if ($hospital) {
+        // Directly compare the entered password with the stored password
+        if ($password === $hospital['password']) {
+            // Store hospital details in session
+            $_SESSION['hospital_id'] = $hospital['hospital_id'];
+            $_SESSION['hospital_username'] = $hospital['username'];
+
+            // Redirect to hospital dashboard
+            header('Location: hospital_dashboard.php');
             exit;
         } else {
             $error = "Invalid username or password";
@@ -35,7 +41,7 @@ if (isset($_POST['submit'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - MedAlert Access System</title>
+    <title>Hospital Login - MedAlert Access System</title>
     <style>
         body {
             font-family: 'Times New Roman', Times, serif;
@@ -66,7 +72,7 @@ if (isset($_POST['submit'])) {
         .logo h2 {
             margin: 0;
             font-weight: 300;
-            color: #074173; /* Update this color as per your preference */
+            color: #074173; /* Dark blue color */
         }
         .box-login {
             padding: 20px;
@@ -89,12 +95,15 @@ if (isset($_POST['submit'])) {
             margin-top: 10px;
         }
         .btn {
-            background-color: #074173; /* Update this color as per your preference */
+            background-color: #074173; /* Dark blue color */
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 3px;
             cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #053a61; /* Darker shade on hover */
         }
         .copyright {
             text-align: center;
@@ -103,7 +112,7 @@ if (isset($_POST['submit'])) {
             color: #999;
         }
         .btn-home {
-            background-color:#007bff;
+            background-color:#074173;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -119,9 +128,9 @@ if (isset($_POST['submit'])) {
 </head>
 <body class="login">
     <div class="main-login">
-        <div class="logo margin-top-30">
+        <div class="logo">
             <a href="index.php">
-                <h2>MedAlert Access System | Admin Login</h2>
+                <h2>MedAlert Access System | Hospital Login</h2>
             </a>
         </div>
 
@@ -130,7 +139,7 @@ if (isset($_POST['submit'])) {
                 <fieldset>
                     <legend>Sign in to your account</legend>
                     <p>Please enter your username and password to log in.<br />
-                        <span style="color:red;"><?php echo isset($error) ? $error : ''; ?></span>
+                        <span style="color:red;"><?php echo isset($error) ? htmlspecialchars($error) : ''; ?></span>
                     </p>
                     <div class="form-group">
                         <input type="text" class="form-control" name="username" placeholder="Username" required>

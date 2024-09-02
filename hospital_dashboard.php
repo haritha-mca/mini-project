@@ -1,9 +1,34 @@
+<?php
+session_start();
+
+// Check if the user is logged in
+if (!isset($_SESSION['hospital_id'])) {
+    header('Location: hospital_login.php'); // Redirect to login page if not logged in
+    exit;
+}
+
+include('config.php'); // Include your database connection file
+
+// Fetch hospital name from the database
+$hospital_id = $_SESSION['hospital_id'];
+$sql = "SELECT name FROM hospitals WHERE id = ?";
+$stmt = $con->prepare($sql);
+$stmt->bind_param("i", $hospital_id);
+$stmt->execute();
+$stmt->bind_result($hospital_name);
+$stmt->fetch();
+$stmt->close();
+
+// Close the database connection
+$con->close();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Hospital Dashboard - MedAlert Access System</title>
     <link rel="stylesheet" href="style.css">
     <style>
         /* General body styles */
@@ -14,6 +39,8 @@
             background-color: #f4f4f4;
             height: 100vh;
             overflow-y: auto; /* Enable vertical scrolling */
+            background: url('assets/images/hospital.jpg') no-repeat center center fixed;
+            background-size: cover;
         }
 
         /* Sidebar styles */
@@ -125,7 +152,7 @@
             top: 30px; /* Space from the top */
             left: 50%;
             transform: translateX(-50%);
-            color: #3A1078;
+            color: white;
             font-size: 30px;
             z-index: 1; /* Ensure the message is above the image */
             font-family: 'Times New Roman', Times, serif;
@@ -134,28 +161,27 @@
 </head>
 <body>
     <nav>
-        <h2>Admin Menu</h2>
-        <a href="admin_dashboard.php">Dashboard</a>
-        <a href="hospital_registration.php">Hospital Registration</a>
-        <a href="admin_view_feedback.php">View Feedback</a>
-        <a href="view_patient_lookup.php">Patient Lookup</a>
-        <a href="hospital_view_lookup.php">Hospital Lookup</a>
+        <h2>Hospital Menu</h2>
+        <a href="hospital_dashboard.php">Dashboard</a>
+        <a href="hospital_add_patient.php">Add Patients</a>
+        <a href="hospital_view_patients.php">View Patients</a>
+        <a href="hospital_view_feedback.php">View Feedback</a>
+        <a href="view_hospital.php">View Hospital</a>
         <a href="logout.php">Logout</a>
     </nav>
     <div class="content">
         <header>
-            <h1>Admin Dashboard - MedAlert Access System</h1>
+            <h1>Hospital Dashboard - MedAlert Access System</h1>
         </header>
         <main>
             <div class="welcome-message">
-                Welcome, Admin
+                Welcome, <?php echo htmlspecialchars($hospital_name); ?>!
             </div>
-            <img src="assets/images/dashboard.jpg" alt="Dashboard Image" class="dashboard-image">
             <div class="button-container">
-                <a href="hospital_registration.php">Register Hospital</a>
-                <a href="admin_view_feedback.php">View Feedback</a>
-                <a href="view_patient_lookup.php"> Patient Lookup</a> 
-                <a href="hospital_view_lookup.php">Hospital Lookup</a>
+                <a href="hospital_add_patient.php">Add Patients</a>
+                <a href="hospital_view_patients.php">View Patients</a>
+                <a href="hospital_view_feedback.php">View Feedback</a>
+                <a href="view_hospital.php">View Hospital</a>
                 <a href="logout.php">Logout</a>
             </div>
         </main>

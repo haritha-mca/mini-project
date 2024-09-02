@@ -107,6 +107,7 @@
             <a href="admin_login.php">Admin</a>
             <a href="user_login.php">User</a>
             <a href="hospital_login.php">Hospital</a>
+            <a href="doctor_login.php">Doctor</a> <!-- New Doctor button -->
         </div>
     </main>
 </body>
