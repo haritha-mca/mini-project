@@ -20,18 +20,18 @@ if (isset($_POST['submit'])) {
         $stmt_general_info->close();
     }
 
-    // Query to check how many hospitals the patient has visited
+    // Query to get hospital information where the patient has visited
     $query_hospitals = "
-        SELECT COUNT(DISTINCT hospital_id) AS hospital_count
-        FROM patients 
-        WHERE patient_id_proof = ?";
+        SELECT h.id, h.name
+        FROM patients p
+        JOIN hospitals h ON p.hospital_id = h.id
+        WHERE p.patient_id_proof = ?";
 
     if ($stmt_hospitals = $con->prepare($query_hospitals)) {
         $stmt_hospitals->bind_param("s", $patient_id_proof);
         $stmt_hospitals->execute();
         $result_hospitals = $stmt_hospitals->get_result();
-        $row_hospitals = $result_hospitals->fetch_assoc();
-        $hospital_count = $row_hospitals['hospital_count'];
+        $hospitals = $result_hospitals->fetch_all(MYSQLI_ASSOC);
         $stmt_hospitals->close();
     }
 }
@@ -57,9 +57,7 @@ if (isset($_POST['submit'])) {
             width: 80%;
             margin: 20px auto;
             padding: 20px;
-         
             border-radius: 8px;
-            
         }
         h2 {
             color: black;
@@ -82,21 +80,48 @@ if (isset($_POST['submit'])) {
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
-        .section-divider {
-            border-top: 2px solid #074173;
-            margin: 20px 0;
-        }
         .error {
             color: #ff0000;
             font-weight: bold;
         }
+        .back-button {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            margin: 20px;
+            padding: 10px 20px;
+            background-color: #1679AB;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-button:hover {
+            background-color: #053a6d;
+        }
+        .hospital-details {
+            margin-top: 20px;
+            display: none;
+        }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function fetchHospitalDetails(hospital_id, patient_id_proof) {
+            $.ajax({
+                url: 'fetch_hospital_details.php',
+                type: 'GET',
+                data: {hospital_id: hospital_id, patient_id_proof: patient_id_proof},
+                success: function(response) {
+                    $('.hospital-details').html(response).slideDown();
+                }
+            });
+        }
+    </script>
 </head>
 <body>
     <div class="container">
         <?php
         if (isset($general_info)) {
-            // Display General Information Once
+            // Display General Information
             echo "<h2>Patient General Information</h2>";
             echo "<table>";
             echo "<tr><th>Patient Name</th><td>" . htmlspecialchars($general_info['patient_name']) . "</td></tr>";
@@ -110,56 +135,19 @@ if (isset($_POST['submit'])) {
             echo "</table>";
         }
 
-        if (isset($hospital_count) && $hospital_count > 0) {
-            // Display Medical Details Downwards
-            $query_medical_details = "
-                SELECT p.*, pd.full_name, pd.date_of_birth, pd.gender, pd.contact_number, pd.email, pd.address
-                FROM patients p
-                LEFT JOIN personaldetails pd ON p.patient_id_proof = pd.patient_id_proof
-                WHERE p.patient_id_proof = ?
-                ORDER BY p.last_visited_date DESC";
-
-            if ($stmt_medical = $con->prepare($query_medical_details)) {
-                $stmt_medical->bind_param("s", $patient_id_proof);
-                $stmt_medical->execute();
-                $result_medical = $stmt_medical->get_result();
-
-                if ($result_medical->num_rows > 0) {
-                    echo "<div class='section-divider'></div>";
-                    echo "<h2>Medical Details</h2>";
-
-                    while ($row_medical = $result_medical->fetch_assoc()) {
-                        echo "<table>";
-                        
-                        echo "<tr><th>BP</th><td>" . htmlspecialchars($row_medical['bp']) . "</td></tr>";
-                        echo "<tr><th>Blood Sugar</th><td>" . htmlspecialchars($row_medical['blood sugar']) . "</td></tr>";
-                        echo "<tr><th>Weight</th><td>" . htmlspecialchars($row_medical['weight']) . "</td></tr>";
-                        echo "<tr><th>Allergies</th><td>" . htmlspecialchars($row_medical['allergies']) . "</td></tr>";
-                        echo "<tr><th>Previous Surgeries</th><td>" . htmlspecialchars($row_medical['previous_surgeries']) . "</td></tr>";
-                        echo "<tr><th>BMI</th><td>" . htmlspecialchars($row_medical['bmi']) . "</td></tr>";
-                        echo "<tr><th>Height</th><td>" . htmlspecialchars($row_medical['height']) . "</td></tr>";
-                        echo "<tr><th>Heart Rate</th><td>" . htmlspecialchars($row_medical['heart_rate']) . "</td></tr>";
-                        echo "<tr><th>Additional Details</th><td>" . htmlspecialchars($row_medical['additional_details']) . "</td></tr>";
-                        echo "<tr><th>Blood Group</th><td>" . htmlspecialchars($row_medical['bloodgroup']) . "</td></tr>";
-                        echo "<tr><th>Previous Hospitals</th><td>" . htmlspecialchars($row_medical['previous_hospitals_visited']) . "</td></tr>";
-                        echo "<tr><th>Medications</th><td>" . htmlspecialchars($row_medical['medications']) . "</td></tr>";
-                        echo "<tr><th>Immunizations</th><td>" . htmlspecialchars($row_medical['immunizations']) . "</td></tr>";
-                        echo "<tr><th>Last Visited Date</th><td>" . htmlspecialchars($row_medical['last_visited_date']) . "</td></tr>";
-                        echo "<tr><th>Test Results</th><td>" . htmlspecialchars($row_medical['test_results']) . "</td></tr>";
-                        echo "<tr><th>Hospitalizations</th><td>" . htmlspecialchars($row_medical['hospitalizations']) . "</td></tr>";
-                        echo "</table>";
-                        echo "<div class='section-divider'></div>";
-                    }
-                } else {
-                    echo "<div class='error'>No medical details found for this patient.</div>";
-                }
-
-                $stmt_medical->close();
+        if (!empty($hospitals)) {
+            echo "<h2>Medical History</h2>";
+            echo "<ul>";
+            foreach ($hospitals as $hospital) {
+                echo "<li><a href='javascript:void(0);' onclick='fetchHospitalDetails(" . $hospital['id'] . ", \"" . urlencode($patient_id_proof) . "\");'>" . htmlspecialchars($hospital['name']) . "</a></li>";
             }
+            echo "</ul>";
         } else {
             echo "<div class='error'>No hospital visit records found for this patient.</div>";
         }
         ?>
+        
+        <div class="hospital-details"></div>
     </div>
 </body>
 </html>
