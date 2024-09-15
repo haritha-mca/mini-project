@@ -1,13 +1,7 @@
 <?php
-session_start();
-require 'config.php'; // Make sure this path is correct
+require 'config.php';
 
-// Redirect if the user is not logged in as admin
-if (!isset($_SESSION['admin'])) {
-    header('Location: admin_login.php');
-    exit;
-}
-
+// Initialize variables
 $success = '';
 $error = '';
 
@@ -18,22 +12,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $contact_info = $_POST['contact_info'];
     $registration_number = $_POST['registration_number'];
     $email = $_POST['email'];
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
-    // Prepare and bind
-    if ($stmt = mysqli_prepare($con, "INSERT INTO hospitals (name, address, contact_info, registration_number, email) VALUES (?, ?, ?, ?, ?)")) {
-        mysqli_stmt_bind_param($stmt, "sssss", $name, $address, $contact_info, $registration_number, $email);
+    // Start a transaction
+    mysqli_begin_transaction($con);
 
-        // Execute the statement
-        if (mysqli_stmt_execute($stmt)) {
-            $success = "Hospital registered successfully";
+    try {
+        // Insert into hospitals table with username and password
+        if ($stmt = mysqli_prepare($con, "INSERT INTO hospitals (name, address, contact_info, registration_number, email, username, password) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+            mysqli_stmt_bind_param($stmt, "sssssss", $name, $address, $contact_info, $registration_number, $email, $username, $password);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
         } else {
-            $error = "Error: " . mysqli_error($con);
+            throw new Exception("Error preparing statement: " . mysqli_error($con));
         }
 
-        // Close the statement
-        mysqli_stmt_close($stmt);
-    } else {
-        $error = "Error preparing statement: " . mysqli_error($con);
+        // Commit the transaction
+        mysqli_commit($con);
+        $success = "Hospital registered successfully. You can now <a href='hospital_login.php'>login</a>.";
+
+    } catch (Exception $e) {
+        mysqli_rollback($con); // Roll back the transaction on error
+        $error = "Transaction failed: " . $e->getMessage();
     }
 }
 ?>
@@ -45,111 +46,110 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hospital Registration</title>
     <style>
-        /* Reset some default styles */
-        body, h1, h2, p {
+        html, body {
             margin: 0;
             padding: 0;
-        }
-
-        /* Body styles */
-        body {
-            font-family: 'Times New Roman', Times, serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f4f4f4; /* Fallback color */
-            overflow: auto; /* Enable scrolling */
-            position: relative; /* Create a positioning context */
-            min-height: 100vh; /* Ensure body covers the full viewport height */
-        }
-
-        /* Background image with blur effect */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
             height: 100%;
+            overflow-y: auto; /* Enable vertical scrollbar for the page */
+            font-family:'Times New Roman', Times, serif;
             background: url('assets/images/hospital.jpg') no-repeat center center fixed;
             background-size: cover;
-            filter: blur(8px); /* Adjust the blur level */
-            z-index: -1; /* Ensure the pseudo-element is behind other content */
         }
 
         header {
-            background-color: #36C2CE; /* Updated header color */
-            color: white; /* Adjusted text color for better contrast */
+            background-color: #1679AB;
+            color: white;
             padding: 15px;
             text-align: center;
-            position: relative; /* Ensure header is above the background */
-            z-index: 1; /* Ensure header is above the pseudo-element */
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: 8px;
         }
 
         main {
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column; /* Ensure content is centered vertically */
             padding: 20px;
-            position: relative; /* Ensure the main section is above the background */
-            z-index: 1; /* Ensure the form is above the pseudo-element */
-            min-height: 80vh; /* Provide space for scrolling if necessary */
+            width: 100%;
+            max-width: 500px;
+  
+            border-radius: 8px;
+            
+            margin: 20px auto;
         }
 
         form {
-           /* Slightly transparent background */
-            padding: 20px;
-            border-radius: 5px;
             width: 100%;
-            max-width: 500px;
-            margin-top: 20px; /* Adjust margin as needed */
-            box-shadow: none; /* Remove box shadow */
-            border: none; /* Remove border */
+            display: flex;
+            flex-direction: column;
         }
 
         label {
-            display: block;
-            margin-bottom: 8px;
             font-weight: bold;
+            margin-bottom: 8px;
+            color: black;
         }
 
         input[type="text"],
         input[type="email"],
+        input[type="password"],
         textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            font-size: 14px;
+            background-color: #f9f9f9;
         }
 
         button {
-            background-color: #4535C1;
+            background-color: #074173;
             color: #fff;
-            padding: 10px 15px;
+            padding: 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            width: 100%;
+            font-size: 16px;
+            margin-bottom: 10px; /* Add margin between buttons */
+            font-family:'Times New Roman', Times, serif;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        p {
-            margin-top: 15px;
-            color: light green;
+        .back-button {
+            background-color: #1679AB;
         }
 
-        .error {
-            color: red;
+        .back-button:hover {
+            background-color: #005493;
+        }
+
+        .success-message, .error-message {
+            margin-top: 15px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Hospital Registration - MedAlert Access System</h1>
+        <h2>Hospital Registration - MedAlert Access System</h2>
     </header>
     <main>
         <form method="POST" action="">
@@ -168,10 +168,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <label for="email">Email:</label>
             <input type="email" name="email" required>
 
-            <button type="submit">Register</button>
+            <label for="username">Username:</label>
+            <input type="text" name="username" required>
 
-            <?php if (!empty($success)) { echo "<p>$success</p>"; } ?>
-            <?php if (!empty($error)) { echo "<p class='error'>$error</p>"; } ?>
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+
+            <button type="submit">Register</button>
+            <a href="hospital_login.php"><button type="button" class="back-button">Back to Login</button></a>
+
+            <?php if (!empty($success)) { echo "<p class='success-message'>$success</p>"; } ?>
+            <?php if (!empty($error)) { echo "<p class='error-message'>$error</p>"; } ?>
         </form>
     </main>
 </body>
