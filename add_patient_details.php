@@ -15,12 +15,14 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            background: url('assets/images/detailsadd.jpg') no-repeat center center fixed;
+            background-size: cover;
         }
 
         .content {
-            background-color: white;
+        
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+         
             padding: 20px;
             max-width: 600px;
             width: 100%;
@@ -30,7 +32,7 @@
             font-size: 24px;
             margin-bottom: 20px;
             text-align: center;
-            color: #074173;
+            color: white;
         }
 
         form label {
@@ -108,8 +110,9 @@
                 <label for="bp">Blood Pressure:</label>
                 <input type="text" id="bp" name="bp">
 
-                <label for="blood sugar">Blood Sugar:</label>
-                <input type="text" id="blood sugar" name="blood sugar">
+                <label for="blood_sugar">Blood Sugar:</label>
+                <input type="text" id="blood_sugar" name="blood_sugar">
+
 
                 <label for="weight">Weight:</label>
                 <input type="text" id="weight" name="weight">
@@ -135,8 +138,6 @@
                 <label for="bloodgroup">Blood Group:</label>
                 <input type="text" id="bloodgroup" name="bloodgroup">
 
-                <label for="previous_hospitals_visited">Previous Hospitals Visited:</label>
-                <textarea id="previous_hospitals_visited" name="previous_hospitals_visited"></textarea>
 
                 <label for="medications">Medications:</label>
                 <textarea id="medications" name="medications"></textarea>
@@ -157,51 +158,50 @@
             </form>
 
             <?php
-            // Include the database connection file
-            include('config.php');
+// Include the database connection file
+include('config.php');
 
-            if (isset($_POST['submit'])) {
-                // Get form data
-                $patient_name = $_POST['patient_name'];
-                $patient_id_proof = $_POST['patient_id_proof'];
-                $details = $_POST['details'];
-                $bp = $_POST['bp'];
-                $blood_sugar = $_POST['blood sugar'];
-                $weight = $_POST['weight'];
-                $allergies = $_POST['allergies'];
-                $previous_surgeries = $_POST['previous_surgeries'];
-                $bmi = $_POST['bmi'];
-                $height = $_POST['height'];
-                $heart_rate = $_POST['heart_rate'];
-                $additional_details = $_POST['additional_details'];
-                $bloodgroup = $_POST['bloodgroup'];
-                $previous_hospitals_visited = $_POST['previous_hospitals_visited'];
-                $medications = $_POST['medications'];
-                $immunizations = $_POST['immunizations'];
-                $last_visited_date = $_POST['last_visited_date'];
-                $test_results = $_POST['test_results'];
-                $hospitalizations = $_POST['hospitalizations'];
+if (isset($_POST['submit'])) {
+    // Escape special characters to prevent SQL injection
+    $patient_name = mysqli_real_escape_string($con, $_POST['patient_name']);
+    $patient_id_proof = mysqli_real_escape_string($con, $_POST['patient_id_proof']);
+    $details = mysqli_real_escape_string($con, $_POST['details']);
+    $bp = mysqli_real_escape_string($con, $_POST['bp']);
+    $blood_sugar = mysqli_real_escape_string($con, $_POST['blood_sugar']);
+    $weight = mysqli_real_escape_string($con, $_POST['weight']);
+    $allergies = mysqli_real_escape_string($con, $_POST['allergies']);
+    $previous_surgeries = mysqli_real_escape_string($con, $_POST['previous_surgeries']);
+    $bmi = mysqli_real_escape_string($con, $_POST['bmi']);
+    $height = mysqli_real_escape_string($con, $_POST['height']);
+    $heart_rate = mysqli_real_escape_string($con, $_POST['heart_rate']);
+    $additional_details = mysqli_real_escape_string($con, $_POST['additional_details']);
+    $bloodgroup = mysqli_real_escape_string($con, $_POST['bloodgroup']);
+    $medications = mysqli_real_escape_string($con, $_POST['medications']);
+    $immunizations = mysqli_real_escape_string($con, $_POST['immunizations']);
+    $last_visited_date = mysqli_real_escape_string($con, $_POST['last_visited_date']);
+    $test_results = mysqli_real_escape_string($con, $_POST['test_results']);
+    $hospitalizations = mysqli_real_escape_string($con, $_POST['hospitalizations']);
 
-                // Insert data into the database
-                $sql = "INSERT INTO patients (
-                            patient_name, patient_id_proof, details, bp, blood sugar, weight, 
-                            allergies, previous_surgeries, bmi, height, heart_rate, additional_details,
-                            bloodgroup, previous_hospitals_visited, medications, immunizations, 
-                            last_visited_date, test_results, hospitalizations
-                        ) VALUES (
-                            '$patient_name', '$patient_id_proof', '$details', '$bp', '$blood_sugar', '$weight',
-                            '$allergies', '$previous_surgeries', '$bmi', '$height', '$heart_rate', '$additional_details',
-                            '$bloodgroup', '$previous_hospitals_visited', '$medications', '$immunizations',
-                            '$last_visited_date', '$test_results', '$hospitalizations'
-                        )";
+    // Construct SQL query with backticks around column names with spaces
+    $sql = "INSERT INTO patients (
+                patient_name, patient_id_proof, details, bp, `blood sugar`, weight, 
+                allergies, previous_surgeries, bmi, height, heart_rate, additional_details,
+                bloodgroup, medications, immunizations, last_visited_date, test_results, hospitalizations
+            ) VALUES (
+                '$patient_name', '$patient_id_proof', '$details', '$bp', '$blood_sugar', '$weight',
+                '$allergies', '$previous_surgeries', '$bmi', '$height', '$heart_rate', '$additional_details',
+                '$bloodgroup', '$medications', '$immunizations', '$last_visited_date', '$test_results', '$hospitalizations'
+            )";
 
-                if (mysqli_query($con, $sql)) {
-                    echo "<div class='success-message'>Patient details added successfully!</div>";
-                } else {
-                    echo "<div class='error-message'>Error: " . $sql . "<br>" . mysqli_error($con) . "</div>";
-                }
-            }
-            ?>
+    if (mysqli_query($con, $sql)) {
+        echo "<div class='success-message'>Patient details added successfully!</div>";
+    } else {
+        echo "<div class='error-message'>Error: " . mysqli_error($con) . "<br>Query: " . htmlspecialchars($sql) . "</div>";
+    }
+}
+?>
+
+
         </main>
     </div>
 </body>
