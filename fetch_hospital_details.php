@@ -22,7 +22,7 @@ if (isset($_GET['hospital_id']) && isset($_GET['patient_id_proof'])) {
             echo "<h2>Medical Details</h2>";
             while ($row_medical = $result_medical->fetch_assoc()) {
                 echo "<table>";
-              
+                echo "<tr><th>Doctor Name</th><td>" . htmlspecialchars($row_medical['doctor_name']) . "</td></tr>";
                 echo "<tr><th>BP</th><td>" . htmlspecialchars($row_medical['bp']) . "</td></tr>";
                 echo "<tr><th>Blood Sugar</th><td>" . htmlspecialchars($row_medical['blood sugar']) . "</td></tr>";
                 echo "<tr><th>Weight</th><td>" . htmlspecialchars($row_medical['weight']) . "</td></tr>";
