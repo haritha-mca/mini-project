@@ -3,30 +3,47 @@ session_start();
 include("config.php"); // Ensure this file has your database connection
 
 if (isset($_POST['submit'])) {
-    $uname = $_POST['username'];
-    $password = $_POST['password'];
-
-    // Prepare and execute the query
-    $stmt = $con->prepare("SELECT * FROM admins WHERE username = ?");
-    $stmt->bind_param("s", $uname);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
-
-    if ($user) {
-        // Check the plain text password
-        if ($password === $user['password']) {
-            $_SESSION['admin'] = $user['id'];
-            header('Location: admin_dashboard.php');
-            exit;
-        } else {
-            $error = "Invalid username or password";
-        }
+    // Trim and sanitize user inputs
+    $uname = trim($_POST['username']);
+    $password = trim($_POST['password']);
+    
+    // Username validation: alphanumeric and underscores, 5-20 characters
+    $usernamePattern = "/^[a-zA-Z0-9_]{5,20}$/";
+    
+    // Password validation: at least 8 characters, one uppercase, one lowercase, one number, and one special character
+    $passwordPattern = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/";
+    
+    // Validation checks
+    if (empty($uname)) {
+        $error = "Username is required.";
+    } elseif (!preg_match($usernamePattern, $uname)) {
+        $error = "Username must be 5-20 characters long and contain only letters, numbers, or underscores.";
+    } elseif (empty($password)) {
+        $error = "Password is required.";
+    } elseif (!preg_match($passwordPattern, $password)) {
+        $error = "Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one number, and one special character.";
     } else {
-        $error = "Invalid username or password";
+        // If validation is successful, proceed with login logic
+        $stmt = $con->prepare("SELECT * FROM admins WHERE username = ?");
+        $stmt->bind_param("s", $uname);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        
+        if ($user) {
+            // Here, you should use password_hash() and password_verify() for security in production
+            if ($password === $user['password']) { // Replace with password_verify() if using hashed passwords
+                $_SESSION['admin'] = $user['id'];
+                header('Location: admin_dashboard.php');
+                exit;
+            } else {
+                $error = "Invalid username or password.";
+            }
+        } else {
+            $error = "Invalid username or password.";
+        }
+        $stmt->close();
     }
-
-    $stmt->close();
 }
 ?>
 
@@ -41,7 +58,7 @@ if (isset($_POST['submit'])) {
             font-family: 'Times New Roman', Times, serif;
             margin: 0;
             padding: 0;
-            background: url('assets/images/sign.png') no-repeat center center fixed; /* Replace with your image path */
+            background: url('assets/images/adminlogin.avif') no-repeat center center fixed;
             background-size: cover;
         }
         .login {
@@ -49,15 +66,15 @@ if (isset($_POST['submit'])) {
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: rgba(0, 0, 0, 0.5); /* Dark overlay to enhance text visibility */
+            background-color: rgba(0, 0, 0, 0.5);
         }
         .main-login {
             width: 100%;
             max-width: 400px;
-            background-color: #D1E9F6; /* Slight transparency for the login box */
             padding: 20px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
             border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
         }
         .logo {
             text-align: center;
@@ -66,7 +83,7 @@ if (isset($_POST['submit'])) {
         .logo h2 {
             margin: 0;
             font-weight: 300;
-            color: #074173; /* Update this color as per your preference */
+            color: #074173;
         }
         .box-login {
             padding: 20px;
@@ -82,38 +99,34 @@ if (isset($_POST['submit'])) {
             padding: 4px;
             border: 1px solid #ccc;
             border-radius: 3px;
+            font-family: 'Times New Roman', Times, serif;
         }
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
+        .button-wrapper {
             margin-top: 10px;
         }
         .btn {
-            background-color: #074173; /* Update this color as per your preference */
+            background-color: #074173;
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 3px;
             cursor: pointer;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .btn-home {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            text-decoration: none;
+            display: inline-block;
         }
         .copyright {
             text-align: center;
             margin-top: 20px;
             font-size: 12px;
             color: #999;
-        }
-        .btn-home {
-            background-color:#007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .button-wrapper {
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -138,9 +151,12 @@ if (isset($_POST['submit'])) {
                     <div class="form-group">
                         <input type="password" class="form-control password" name="password" placeholder="Password" required>
                     </div>
+                    </span><a href="adminforgot_password.php">
+									Forgot Password ?
+								</a>
                     <div class="button-wrapper">
                         <button type="submit" class="btn" name="submit">Login</button>
-                        <a href="login.php" class="btn-home">Back to Home</a>
+                        <a href="login.php" class="btn-home">Back to Login</a>
                     </div>
                 </fieldset>
             </form>
@@ -152,3 +168,4 @@ if (isset($_POST['submit'])) {
     </div>
 </body>
 </html>
+
