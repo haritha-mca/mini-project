@@ -2,7 +2,12 @@
 session_start();
 include("config.php");
 
-$query = "SELECT * FROM feedback WHERE feedback_type = 'Admin'";
+// SQL query to fetch feedback with corresponding user names
+$query = "
+    SELECT  u.username, f.overall_experience, f.access_ease, f.system_speed, f.issues_encountered, f.additional_comments 
+    FROM feedback f
+    JOIN users u ON f.user_id = u.id 
+    WHERE f.feedback_type = 'Admin'";
 $result = $con->query($query);
 ?>
 
@@ -22,17 +27,17 @@ $result = $con->query($query);
             justify-content: center;
             align-items: center;
             height: 100vh;
-            
+            background: url('assets/images/feed.webp') no-repeat center center fixed;
+            background-size: cover;
         }
 
         .feedback-container {
-           
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 100%;
-            height:100%;
+            height: 100%;
             overflow-x: auto;
         }
 
@@ -55,6 +60,7 @@ $result = $con->query($query);
         th, td {
             padding: 8px;
             text-align: left;
+            background-color: white;
         }
 
         th {
@@ -73,7 +79,8 @@ $result = $con->query($query);
         <table>
             <thead>
                 <tr>
-                    <th>User ID</th>
+                   
+                    <th>User Name</th>
                     <th>Overall Experience</th>
                     <th>Access Ease</th>
                     <th>System Speed</th>
@@ -86,7 +93,8 @@ $result = $con->query($query);
                 if ($result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
                         echo "<tr>
-                            <td>" . htmlspecialchars($row['user_id']) . "</td>
+                           
+                            <td>" . htmlspecialchars($row['username']) . "</td>
                             <td>" . htmlspecialchars($row['overall_experience']) . "</td>
                             <td>" . htmlspecialchars($row['access_ease']) . "</td>
                             <td>" . htmlspecialchars($row['system_speed']) . "</td>
@@ -95,7 +103,7 @@ $result = $con->query($query);
                         </tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='6'>No feedback available</td></tr>";
+                    echo "<tr><td colspan='7'>No feedback available</td></tr>";
                 }
                 ?>
             </tbody>
